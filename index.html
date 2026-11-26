@@ -75,8 +75,8 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
 
 <header class="hero">
   <h1>🎄 Amigo Secreto <span>2026</span> 🎁</h1>
-  <p>Un intercambio lleno de magia, sorpresas y villancicos</p>
-  <span class="badge">💰 Regalo de $10</span>
+  <p id="sub">Un intercambio lleno de magia, sorpresas y villancicos</p>
+  <span class="badge">💰 Regalo de $<span class="p">10</span></span>
   <span class="badge" id="dias"></span>
 </header>
 
@@ -88,7 +88,7 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
         <div class="step"><b>1. Inscríbete</b>Pon tu nombre, un PIN, tus gustos y hasta 5 fotos.</div>
         <div class="step"><b>2. Espera</b>El sorteo se hace solo cuando todos estén inscritos.</div>
         <div class="step"><b>3. Descubre</b>Mira a quién le tocó y qué le gusta.</div>
-        <div class="step"><b>4. Sorprende</b>Un regalo de $10 con mucho cariño.</div>
+        <div class="step"><b>4. Sorprende</b>Un regalo de $<span class="p">10</span> con mucho cariño.</div>
       </div>
     </div>
     <div class="card gold">
@@ -103,7 +103,7 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
       <div id="nombres"></div>
     </div>
     <div class="card gold">
-      <h2>🎁 Ideas de regalo de $10</h2>
+      <h2>🎁 Ideas de regalo de $<span class="p">10</span></h2>
       <div id="ideas"></div>
       <p class="tip" id="tip"></p>
       <button class="sec" id="bTip">Otra idea ✨</button>
@@ -123,7 +123,7 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
           <p class="hint">Elige un PIN de 4 a 6 números. Lo necesitarás para ver a quién te tocó y para editar tus datos.</p>
           <label for="n1">Tu nombre</label><input id="n1" type="text" maxlength="40" autocomplete="off">
           <label for="p1">Tu PIN</label><input id="p1" type="password" inputmode="numeric" maxlength="6" autocomplete="off">
-          <label for="g1">¿Qué te gusta? (ideas para un regalo de $10)</label>
+          <label for="g1">¿Qué te gusta? (ideas para un regalo de $<span class="p">10</span>)</label>
           <textarea id="g1" maxlength="500" placeholder="Colores, dulces, series, hobbies, tallas…"></textarea>
           <label for="f1">Collage de ideas (opcional, hasta 5 fotos)</label>
           <input id="f1" type="file" accept="image/*" multiple>
@@ -150,11 +150,16 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
 
       <div id="t3" hidden>
         <label for="ck">Clave de organizador</label><input id="ck" type="password" autocomplete="off">
+        <label for="tt">Nombre del sorteo</label><input id="tt" type="text" maxlength="60" value="Amigo Secreto de Navidad">
+        <label for="pp">Presupuesto por regalo ($)</label><input id="pp" type="number" min="1" value="10">
         <label for="nn">Número de participantes</label><input id="nn" type="number" min="3" value="6">
         <button id="bCfg">Crear o actualizar sorteo</button>
         <button id="bCerrar" class="sec">Cerrar inscripciones y sortear ahora</button>
         <button id="bReset" class="sec">Reiniciar todo</button>
         <p class="msg" id="mOrg"></p>
+        <p class="hint">Enlace de este sorteo:<br><b id="enlace"></b></p>
+        <button id="bLista" class="sec">Ver todos mis sorteos</button>
+        <div id="lista"></div>
       </div>
     </div>
   </aside>
@@ -171,6 +176,7 @@ var SUPABASE_KEY = "sb_publishable__9aabskjkc_EsmQysSuEcw_Q042sXuU";
 // ===========================================================================================
 
 var $ = function(id){ return document.getElementById(id); };
+var SLUG = (new URLSearchParams(location.search).get("sorteo") || "principal").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30) || "principal";
 var imgs = [], AV = ["🎅","🤶","🦌","⛄","🧝","🎄","🎁","⭐"];
 
 /* ---------- decoración ---------- */
@@ -259,7 +265,16 @@ function run(btn, mid, fn){
   return fn().catch(function(e){ msg(mid, e.message, false); }).then(function(){ btn.disabled = false; });
 }
 
+var orgT = false;
 function paint(s){
+  if (!s.existe){
+    $("estado").textContent = "Este sorteo aún no existe. Si eres el organizador, créalo en la pestaña ⚙️.";
+    $("barra").style.width = "0%"; $("nombres").innerHTML = ""; $("reg").hidden = true;
+    $("regMsg").hidden = false; $("regMsg").textContent = "Este sorteo todavía no está listo."; return;
+  }
+  document.querySelectorAll(".p").forEach(function(e){ e.textContent = s.presupuesto; });
+  if (s.titulo) $("sub").textContent = s.titulo;
+  if (!orgT){ $("tt").value = s.titulo || $("tt").value; $("pp").value = s.presupuesto || $("pp").value; if (s.esperados) $("nn").value = s.esperados; }
   $("estado").textContent = !s.configurado
     ? "El organizador aún no ha preparado el sorteo."
     : "Inscritos: " + s.total + " de " + s.esperados + (s.sorteado ? " · ¡Sorteo realizado! 🎉" : "");
@@ -271,7 +286,7 @@ function paint(s){
   $("regMsg").hidden = abierto;
   $("regMsg").textContent = !s.configurado ? "El organizador aún no ha preparado el sorteo. Vuelve en un momento." : "🎉 ¡El sorteo ya se realizó! Ve a la pestaña “Mi amigo” para descubrir a quién te tocó.";
 }
-function refresh(){ return rpc("sorteo_estado").then(paint).catch(function(e){ $("estado").textContent = "No se pudo conectar: " + e.message; }); }
+function refresh(){ return rpc("sorteo_estado", {p_s: SLUG}).then(paint).catch(function(e){ $("estado").textContent = "No se pudo conectar: " + e.message; }); }
 
 function shrink(file){
   return new Promise(function(res){
@@ -303,7 +318,7 @@ $("f1").onchange = async function(){
 
 $("bReg").onclick = function(){
   run($("bReg"), "mReg", function(){
-    return rpc("sorteo_inscribir", {p_nombre: $("n1").value, p_pin: $("p1").value, p_gustos: $("g1").value, p_fotos: imgs})
+    return rpc("sorteo_inscribir", {p_s: SLUG, p_nombre: $("n1").value, p_pin: $("p1").value, p_gustos: $("g1").value, p_fotos: imgs})
       .then(function(s){
         paint(s);
         $("n2").value = $("n1").value;
@@ -315,7 +330,7 @@ $("bReg").onclick = function(){
 
 $("bRes").onclick = function(){
   run($("bRes"), "mRes", function(){
-    return rpc("sorteo_resultado", {p_nombre: $("n2").value, p_pin: $("p2").value}).then(function(r){
+    return rpc("sorteo_resultado", {p_s: SLUG, p_nombre: $("n2").value, p_pin: $("p2").value}).then(function(r){
       if (!r.sorteado){ msg("mRes", "Aún no se hace el sorteo. Se hará cuando se inscriban todos.", true); return; }
       $("rNombre").textContent = r.nombre;
       var g = $("rGustos"); g.innerHTML = "";
@@ -333,23 +348,36 @@ $("bRes").onclick = function(){
 $("bHide").onclick = function(){ $("res").hidden = true; $("bRes").hidden = false; $("p2").value = ""; };
 
 $("bCfg").onclick = function(){ run($("bCfg"), "mOrg", function(){
-  return rpc("sorteo_configurar", {p_clave: $("ck").value, p_n: parseInt($("nn").value, 10) || 0})
+  return rpc("sorteo_configurar", {p_s: SLUG, p_clave: $("ck").value, p_n: parseInt($("nn").value, 10) || 0, p_titulo: $("tt").value, p_pres: parseInt($("pp").value, 10) || 0})
     .then(function(s){ paint(s); msg("mOrg", "Sorteo configurado para " + s.esperados + " personas.", true); });
 }); };
 $("bCerrar").onclick = function(){
   if (!confirm("Se sorteará con las personas inscritas hasta ahora. ¿Seguro?")) return;
   run($("bCerrar"), "mOrg", function(){
-    return rpc("sorteo_cerrar", {p_clave: $("ck").value}).then(function(s){ paint(s); msg("mOrg", s.sorteado ? "Sorteo realizado." : "Faltan inscritos (mínimo 3).", s.sorteado); });
+    return rpc("sorteo_cerrar", {p_s: SLUG, p_clave: $("ck").value}).then(function(s){ paint(s); msg("mOrg", s.sorteado ? "Sorteo realizado." : "Faltan inscritos (mínimo 3).", s.sorteado); });
   });
 };
 $("bReset").onclick = function(){
   if (!confirm("Esto borra a todos los inscritos y el sorteo. ¿Seguro?")) return;
   run($("bReset"), "mOrg", function(){
-    return rpc("sorteo_reiniciar", {p_clave: $("ck").value}).then(function(s){ paint(s); msg("mOrg", "Todo reiniciado.", true); });
+    return rpc("sorteo_reiniciar", {p_s: SLUG, p_clave: $("ck").value}).then(function(s){ paint(s); msg("mOrg", "Todo reiniciado.", true); });
   });
 };
 
 try { var gn = localStorage.getItem("sorteo-nombre"); if (gn){ $("n1").value = gn; $("n2").value = gn; } } catch(e){}
+["tt","pp","nn"].forEach(function(id){ $(id).oninput = function(){ orgT = true; }; });
+$("enlace").textContent = location.origin + location.pathname + "?sorteo=" + SLUG;
+$("bLista").onclick = function(){ run($("bLista"), "mOrg", function(){
+  return rpc("sorteo_lista", {p_clave: $("ck").value}).then(function(L){
+    var box = $("lista"); box.innerHTML = "";
+    L.forEach(function(x){
+      var a = document.createElement("a"); a.href = "?sorteo=" + encodeURIComponent(x.slug);
+      a.textContent = x.titulo + " (" + x.slug + ") · $" + x.presupuesto + " · " + x.total + "/" + x.esperados + (x.sorteado ? " ✅" : "");
+      a.style.cssText = "display:block;margin:6px 0;color:#c62828;font-weight:600"; box.appendChild(a);
+    });
+    if (!L.length) box.textContent = "Aún no hay sorteos.";
+  });
+}); };
 refresh();
 setInterval(function(){ if (!document.hidden) refresh(); }, 20000);
 </script>
