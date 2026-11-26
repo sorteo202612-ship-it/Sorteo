@@ -150,6 +150,9 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
 
       <div id="t3" hidden>
         <label for="ck">Clave de organizador</label><input id="ck" type="password" autocomplete="off">
+        <button id="bEntrar">Entrar 🔑</button>
+        <p class="msg" id="mEntrar"></p>
+        <div id="orgPanel" hidden>
         <label for="sl">Nombre del sorteo en el enlace (minúsculas, números y guiones)</label><input id="sl" type="text" maxlength="30" placeholder="familia-2026">
         <label for="tt">Título del sorteo</label><input id="tt" type="text" maxlength="60" value="Amigo Secreto de Navidad">
         <label for="pp">Presupuesto por regalo ($)</label><input id="pp" type="number" min="1" value="10">
@@ -159,14 +162,18 @@ footer{text-align:center;padding:24px 16px 80px;opacity:.85}
         <button id="bReset" class="sec">Reiniciar todo</button>
         <p class="msg" id="mOrg"></p>
         <p class="hint">Enlace de este sorteo:<br><b id="enlace"></b></p>
-        <button id="bLista" class="sec">Ver todos mis sorteos</button>
+        <h2 style="margin-top:18px">📋 Mis sorteos</h2>
+        <p class="hint" id="resumen"></p>
+        <button id="bLista" class="sec">🔄 Actualizar lista</button>
         <div id="lista"></div>
+        <button id="bSalir" class="sec">Salir del panel</button>
+        </div>
       </div>
     </div>
   </aside>
 </main>
 
-<footer>🎅 Feliz Navidad y próspero año nuevo 🦌<br>Guarda el secreto: ¡la magia está en la sorpresa!</footer>
+<footer>🎅 Feliz Navidad y próspero año nuevo 🦌<br>Guarda el secreto: ¡la magia está en la sorpresa! <a id="sec" href="./" aria-label="Organizador" style="color:inherit;text-decoration:none;opacity:.25;font-size:.8rem">⭐</a></footer>
 
 <div class="music"><span class="t">🎵 <span id="cancion">Radio Navideña</span></span><button id="bPlay">▶</button><button id="bNext">⏭</button></div>
 
@@ -271,7 +278,7 @@ function run(btn, mid, fn){
 var orgT = false;
 function paint(s){
   if (!s.existe){
-    $("estado").textContent = "Este sorteo aún no existe. Si eres el organizador, créalo en la pestaña ⚙️.";
+    $("estado").textContent = "Este sorteo aún no existe. Si eres el organizador, entra por la estrella ⭐ del final de la página.";
     $("barra").style.width = "0%"; $("nombres").innerHTML = ""; $("reg").hidden = true;
     $("regMsg").hidden = false; $("regMsg").textContent = "Este sorteo todavía no está listo."; return;
   }
@@ -407,10 +414,22 @@ function loadLista(){
       });
       box.appendChild(d);
     });
+    var act = L.filter(function(x){ return !x.sorteado; }).length, ins = 0;
+    L.forEach(function(x){ ins += (x.total || 0); });
+    $("resumen").textContent = L.length ? ("Activos: " + act + " · Sorteados: " + (L.length - act) + " · Personas inscritas en total: " + ins) : "";
     if (!L.length) box.textContent = "Aún no hay sorteos. Crea el primero arriba.";
   });
 }
 $("bLista").onclick = function(){ run($("bLista"), "mOrg", loadLista); };
+$("bEntrar").onclick = function(){
+  run($("bEntrar"), "mEntrar", function(){
+    return loadLista().then(function(){ $("orgPanel").hidden = false; $("bEntrar").hidden = true; $("ck").disabled = true; });
+  });
+};
+$("ck").onkeydown = function(e){ if (e.key === "Enter" && !$("bEntrar").hidden) $("bEntrar").click(); };
+$("bSalir").onclick = function(){ location.reload(); };
+setInterval(function(){ if (!document.hidden && !SLUG && !$("orgPanel").hidden) loadLista().catch(function(){}); }, 20000);
+$("sec").href = location.pathname;
 function adminMode(){
   document.querySelector("section.col").hidden = true;
   document.querySelector(".tabs").hidden = true;
@@ -419,7 +438,7 @@ function adminMode(){
   $("splash").hidden = true; document.querySelector(".music").hidden = true; document.querySelector(".badge").hidden = true;
   $("sub").textContent = "Panel del organizador";
   $("bCerrar").hidden = true; $("bReset").hidden = true;
-  $("bLista").textContent = "Ver mis sorteos (sortear / reiniciar)";
+  $("sec").hidden = true;
   $("enlace").textContent = "(escribe un nombre de sorteo arriba)";
   $("sl").oninput = function(){ $("enlace").textContent = location.origin + location.pathname + "?sorteo=" + norm($("sl").value); };
 }
