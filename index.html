@@ -352,7 +352,7 @@ $("bHide").onclick = function(){ $("res").hidden = true; $("bRes").hidden = fals
 
 $("bCfg").onclick = function(){ run($("bCfg"), "mOrg", function(){
   return rpc("sorteo_configurar", {p_s: cur(), p_clave: $("ck").value, p_n: parseInt($("nn").value, 10) || 0, p_titulo: $("tt").value, p_pres: parseInt($("pp").value, 10) || 0})
-    .then(function(s){ paint(s); msg("mOrg", "Sorteo configurado para " + s.esperados + " personas.", true); $("enlace").textContent = location.origin + location.pathname + "?sorteo=" + cur(); if (!SLUG) return loadLista(); });
+    .then(function(s){ if (SLUG) paint(s); msg("mOrg", "Sorteo configurado para " + s.esperados + " personas.", true); $("enlace").textContent = location.origin + location.pathname + "?sorteo=" + cur(); if (!SLUG) return loadLista(); });
 }); };
 $("bCerrar").onclick = function(){
   if (!confirm("Se sorteará con las personas inscritas hasta ahora. ¿Seguro?")) return;
@@ -375,15 +375,37 @@ function loadLista(){
     var box = $("lista"); box.innerHTML = "";
     L.forEach(function(x){
       var u = location.origin + location.pathname + "?sorteo=" + x.slug, d = document.createElement("div");
-      d.style.cssText = "margin:8px 0;padding:8px;background:#fff;border:1px solid #eadfc9;border-radius:10px";
-      var a = document.createElement("a"); a.href = "?sorteo=" + encodeURIComponent(x.slug); a.style.cssText = "color:#c62828;font-weight:700";
+      d.style.cssText = "margin:8px 0;padding:10px;background:#fff;border:1px solid #eadfc9;border-radius:10px";
+      var a = document.createElement("a"); a.href = "?sorteo=" + encodeURIComponent(x.slug); a.target = "_blank"; a.rel = "noopener"; a.style.cssText = "color:#c62828;font-weight:700";
       a.textContent = x.titulo + " · " + x.slug; d.appendChild(a);
       var i = document.createElement("div"); i.className = "hint";
-      i.textContent = "$" + x.presupuesto + " · inscritos " + x.total + "/" + x.esperados + (x.sorteado ? " · ✅ sorteado" : ""); d.appendChild(i);
-      var b = document.createElement("button"); b.className = "sec"; b.textContent = "Copiar enlace";
-      b.style.cssText = "width:auto;margin:6px 0 0;padding:4px 10px;font-size:.8rem";
-      b.onclick = function(){ try { navigator.clipboard.writeText(u); b.textContent = "¡Copiado!"; } catch(e){ b.textContent = u; } };
-      d.appendChild(b); box.appendChild(d);
+      i.textContent = "$" + x.presupuesto + " · inscritos " + x.total + "/" + x.esperados + (x.sorteado ? " · ✅ sorteado" : " · ⏳ abierto"); d.appendChild(i);
+      var row = document.createElement("div"); row.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"; d.appendChild(row);
+      function mk(text, fn){
+        var b = document.createElement("button"); b.className = "sec"; b.textContent = text;
+        b.style.cssText = "width:auto;margin:0;padding:6px 10px;font-size:.8rem";
+        b.onclick = function(){ fn(b); }; row.appendChild(b);
+      }
+      mk("Copiar enlace", function(b){ try { navigator.clipboard.writeText(u); b.textContent = "¡Copiado!"; } catch(e){ b.textContent = u; } });
+      if (!x.sorteado) mk("🎲 Sortear ahora", function(b){
+        if (!confirm("Se sorteará «" + x.slug + "» con las personas inscritas hasta ahora. ¿Seguro?")) return;
+        run(b, "mOrg", function(){
+          return rpc("sorteo_cerrar", {p_s: x.slug, p_clave: $("ck").value}).then(function(s){
+            msg("mOrg", s.sorteado ? "Sorteo realizado en «" + x.slug + "»." : "En «" + x.slug + "» faltan inscritos (mínimo 3).", s.sorteado);
+            return loadLista();
+          });
+        });
+      });
+      mk("♻️ Reiniciar", function(b){
+        if (!confirm("Esto borra a todos los inscritos y el sorteo de «" + x.slug + "». ¿Seguro?")) return;
+        run(b, "mOrg", function(){
+          return rpc("sorteo_reiniciar", {p_s: x.slug, p_clave: $("ck").value}).then(function(){
+            msg("mOrg", "«" + x.slug + "» reiniciado.", true);
+            return loadLista();
+          });
+        });
+      });
+      box.appendChild(d);
     });
     if (!L.length) box.textContent = "Aún no hay sorteos. Crea el primero arriba.";
   });
@@ -397,10 +419,11 @@ function adminMode(){
   $("splash").hidden = true; document.querySelector(".music").hidden = true; document.querySelector(".badge").hidden = true;
   $("sub").textContent = "Panel del organizador";
   $("bCerrar").hidden = true; $("bReset").hidden = true;
+  $("bLista").textContent = "Ver mis sorteos (sortear / reiniciar)";
   $("enlace").textContent = "(escribe un nombre de sorteo arriba)";
   $("sl").oninput = function(){ $("enlace").textContent = location.origin + location.pathname + "?sorteo=" + norm($("sl").value); };
 }
-if (SLUG){ $("sl").value = SLUG; $("sl").disabled = true; } else adminMode();
+if (SLUG){ $("sl").value = SLUG; $("sl").disabled = true; document.querySelector('.tab[data-t="t3"]').hidden = true; } else adminMode();
 if (SLUG){ refresh(); setInterval(function(){ if (!document.hidden) refresh(); }, 20000); }
 </script>
 </body>
