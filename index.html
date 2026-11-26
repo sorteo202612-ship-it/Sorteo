@@ -139,7 +139,7 @@ function fillImgs(box, list){
 }
 
 $("f1").onchange = async function(){
-  var files = Array.prototype.slice.call($("f1").files).slice(0, 2), out = [];
+  var files = Array.prototype.slice.call($("f1").files).slice(0, 5), out = [];
   for (var i = 0; i < files.length; i++){ var d = await shrink(files[i]); if (d) out.push(d); }
   imgs = out; fillImgs($("prev"), imgs);
 };
