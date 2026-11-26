@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amigo Secreto de Navidad</title>
+<style>
+:root{--g1:#0b3d2e;--g2:#14532d;--red:#c62828;--gold:#f6c453;--cream:#fffaf0;--ink:#2b2b2b;--mut:#6b6b6b;--line:#eadfc9;box-sizing:border-box}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;background:radial-gradient(circle at 20% 0,#1b6b46 0,transparent 45%),linear-gradient(160deg,var(--g1),var(--g2) 60%,#0a2a20);background-attachment:fixed}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0}
+.lights{display:flex;justify-content:space-around;overflow:hidden;height:26px;position:relative;z-index:1;border-bottom:2px solid #0006}
+.lights span{width:12px;height:16px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;margin-top:6px;animation:bl 1.6s infinite}
+@keyframes bl{50%{opacity:.35;transform:scale(.85)}}
+.hero,.wrap,footer{position:relative;z-index:1}
+.hero{text-align:center;padding:28px 16px 8px}
+.hero h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2rem,6vw,3.4rem);margin:0;text-shadow:0 3px 12px #0008}
+.hero h1 span{color:var(--gold)}
+.hero p{margin:6px 0 14px;opacity:.9;font-size:1.1rem}
+.badge{display:inline-block;background:#ffffff1f;border:1px solid #ffffff40;border-radius:999px;padding:6px 14px;margin:4px;font-weight:600;backdrop-filter:blur(4px)}
+.wrap{max-width:1080px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
+@media(max-width:820px){.wrap{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:18px}
+.card{background:var(--cream);color:var(--ink);border-radius:18px;padding:18px;box-shadow:0 10px 30px #0006;border-top:5px solid var(--red)}
+.card.gold{border-top-color:var(--gold)}
+.sticky{position:sticky;top:12px}
+h2{font-family:Georgia,serif;font-size:1.25rem;margin:0 0 10px;color:var(--g1)}
+.steps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.9rem}
+.step b{display:block;color:var(--red)}
+.bar{height:12px;background:#e8dcc4;border-radius:99px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(45deg,var(--red) 0 10px,#fff 10px 20px);transition:width .6s}
+.pill{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 12px;margin:3px;font-size:.92rem}
+.chip{display:inline-block;background:#e8f5e9;color:var(--g1);border-radius:999px;padding:4px 12px;margin:3px;font-size:.9rem}
+.tip{background:#fff3cd;border-radius:12px;padding:10px;margin:10px 0 0;font-size:.92rem}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;margin:0;padding:10px 6px;font-size:.88rem;background:#f1e7d0;color:var(--g1);border-radius:10px}
+.tab.on{background:var(--red);color:#fff}
+label{display:block;font-weight:600;margin:10px 0 4px}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:80px;resize:vertical}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 16px;background:var(--red);color:#fff;font-weight:700;width:100%;margin-top:12px}
+button.sec{background:transparent;color:var(--g1);border:1px solid var(--line)}
+button:disabled{opacity:.5;cursor:default}
+.hint{font-size:.85rem;color:var(--mut)}
+.msg{font-size:.9rem;margin:8px 0 0}.err{color:var(--red)}.ok{color:#2e7d32}
+.big{font-family:Georgia,serif;font-size:2.2rem;text-align:center;font-weight:700;color:var(--red);margin:6px 0}
+.imgs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;justify-content:center}
+.imgs img{width:30%;min-width:90px;max-width:180px;border-radius:10px;border:3px solid #fff;box-shadow:0 3px 8px #0003}
+.likes{white-space:pre-wrap;background:#fff;border-radius:10px;padding:10px;margin-top:6px}
+.music{position:fixed;right:12px;bottom:12px;z-index:5;background:#000a;border:1px solid #fff4;border-radius:999px;padding:6px 8px 6px 14px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(6px);font-size:.9rem}
+.music button{width:auto;margin:0;padding:6px 12px;border-radius:999px;background:var(--gold);color:#222}
+footer{text-align:center;padding:24px 16px 80px;opacity:.85}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+<div class="lights" id="lights"></div>
+
+<header class="hero">
+  <h1>🎄 Amigo Secreto <span>2026</span> 🎁</h1>
+  <p>Un intercambio lleno de magia, sorpresas y villancicos</p>
+  <span class="badge">💰 Regalo de $10</span>
+  <span class="badge" id="dias"></span>
+</header>
+
+<main class="wrap">
+  <section class="col">
+    <div class="card gold">
+      <h2>✨ ¿Cómo funciona?</h2>
+      <div class="steps">
+        <div class="step"><b>1. Inscríbete</b>Pon tu nombre, un PIN, tus gustos y hasta 5 fotos.</div>
+        <div class="step"><b>2. Espera</b>El sorteo se hace solo cuando todos estén inscritos.</div>
+        <div class="step"><b>3. Descubre</b>Mira a quién le tocó y qué le gusta.</div>
+        <div class="step"><b>4. Sorprende</b>Un regalo de $10 con mucho cariño.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>👥 Participantes</h2>
+      <strong id="estado">Cargando…</strong>
+      <div class="bar"><i id="barra"></i></div>
+      <div id="nombres"></div>
+    </div>
+    <div class="card gold">
+      <h2>🎁 Ideas de regalo de $10</h2>
+      <div id="ideas"></div>
+      <p class="tip" id="tip"></p>
+      <button class="sec" id="bTip">Otra idea ✨</button>
+    </div>
+  </section>
+
+  <aside class="col">
+    <div class="card sticky">
+      <div class="tabs">
+        <button class="tab on" data-t="t1">🎁 Inscribirme</button>
+        <button class="tab" data-t="t2">🎅 Mi amigo</button>
+        <button class="tab" data-t="t3">⚙️ Organizador</button>
+      </div>
+
+      <div id="t1">
+        <div id="reg">
+          <p class="hint">Elige un PIN de 4 a 6 números. Lo necesitarás para ver a quién te tocó y para editar tus datos.</p>
+          <label for="n1">Tu nombre</label><input id="n1" type="text" maxlength="40" autocomplete="off">
+          <label for="p1">Tu PIN</label><input id="p1" type="password" inputmode="numeric" maxlength="6" autocomplete="off">
+          <label for="g1">¿Qué te gusta? (ideas para un regalo de $10)</label>
+          <textarea id="g1" maxlength="500" placeholder="Colores, dulces, series, hobbies, tallas…"></textarea>
+          <label for="f1">Collage de ideas (opcional, hasta 5 fotos)</label>
+          <input id="f1" type="file" accept="image/*" multiple>
+          <div class="imgs" id="prev"></div>
+          <button id="bReg">Inscribirme 🎄</button>
+          <p class="msg" id="mReg"></p>
+        </div>
+        <p id="regMsg" class="hint" hidden></p>
+      </div>
+
+      <div id="t2" hidden>
+        <label for="n2">Tu nombre</label><input id="n2" type="text" maxlength="40" autocomplete="off">
+        <label for="p2">Tu PIN</label><input id="p2" type="password" inputmode="numeric" maxlength="6" autocomplete="off">
+        <button id="bRes">Ver mi amigo secreto 🎅</button>
+        <p class="msg" id="mRes"></p>
+        <div id="res" hidden>
+          <p class="hint" style="text-align:center">Tu amigo secreto es:</p>
+          <div class="big" id="rNombre"></div>
+          <div id="rGustos"></div>
+          <div class="imgs" id="rFotos"></div>
+          <button class="sec" id="bHide">Ocultar</button>
+        </div>
+      </div>
+
+      <div id="t3" hidden>
+        <label for="ck">Clave de organizador</label><input id="ck" type="password" autocomplete="off">
+        <label for="nn">Número de participantes</label><input id="nn" type="number" min="3" value="6">
+        <button id="bCfg">Crear o actualizar sorteo</button>
+        <button id="bCerrar" class="sec">Cerrar inscripciones y sortear ahora</button>
+        <button id="bReset" class="sec">Reiniciar todo</button>
+        <p class="msg" id="mOrg"></p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>🎅 Feliz Navidad y próspero año nuevo 🦌<br>Guarda el secreto: ¡la magia está en la sorpresa!</footer>
+
+<div class="music"><span>🎵 <span id="cancion"></span></span><button id="bPlay">▶</button><button id="bNext">⏭</button></div>
+
+<script>
+// ====== PEGA AQUÍ TUS DATOS DE SUPABASE (copia estas 2 líneas de tu index.html actual) ======
+var SUPABASE_URL = "https://TU-PROYECTO.supabase.co";
+var SUPABASE_KEY = "TU-CLAVE-ANON-O-PUBLISHABLE";
+// ===========================================================================================
+
+var $ = function(id){ return document.getElementById(id); };
+var imgs = [], AV = ["🎅","🤶","🦌","⛄","🧝","🎄","🎁","⭐"];
+
+/* ---------- decoración ---------- */
+(function(){
+  var L = $("lights"), cols = ["#e53935","#fdd835","#43a047","#1e88e5"];
+  for (var i = 0; i < 40; i++){ var s = document.createElement("span"); s.style.background = cols[i % 4]; s.style.animationDelay = (i % 5) * 0.3 + "s"; L.appendChild(s); }
+  var now = new Date(), x = new Date(now.getFullYear(), 11, 25);
+  if (now > new Date(now.getFullYear(), 11, 25, 23, 59)) x.setFullYear(x.getFullYear() + 1);
+  var d = Math.ceil((x - now) / 864e5);
+  $("dias").textContent = d <= 0 ? "🎅 ¡Hoy es Navidad!" : "🎄 Faltan " + d + (d === 1 ? " día" : " días") + " para Navidad";
+
+  var IDEAS = ["🍫 Chocolates","☕ Taza bonita","🧦 Medias navideñas","📓 Libreta","🕯️ Vela aromática","🌱 Plantita","🔑 Llavero","🃏 Juego de cartas","🍪 Galletas","🧴 Crema o jabón","🎧 Funda para audífonos","🖍️ Set de arte"];
+  IDEAS.forEach(function(t){ var c = document.createElement("span"); c.className = "chip"; c.textContent = t; $("ideas").appendChild(c); });
+  var TIPS = ["Envuelve el regalo con papel reciclado y una ramita de pino.","Agrega una tarjeta con un mensaje cariñoso, sin firmar.","Si no sabes qué dar, un detalle comestible nunca falla.","Mira los gustos y las fotos de tu amigo secreto: ahí están las pistas.","Los regalos hechos a mano valen más que su precio.","Esconde una pista divertida en la tarjeta, ¡pero sin delatarte!"];
+  function tip(){ $("tip").textContent = "💡 " + TIPS[Math.floor(Math.random() * TIPS.length)]; }
+  tip(); $("bTip").onclick = tip;
+
+  /* nieve */
+  var c = $("snow"), g = c.getContext("2d"), f = [], W, H;
+  if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)){
+    function rs(){ W = c.width = innerWidth; H = c.height = innerHeight; }
+    rs(); addEventListener("resize", rs);
+    for (var i = 0; i < 70; i++) f.push({x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 3, v: 0.4 + Math.random() * 1.2, s: Math.random() * 6});
+    (function a(){
+      g.clearRect(0, 0, W, H); g.fillStyle = "rgba(255,255,255,.85)";
+      f.forEach(function(p){ p.y += p.v; p.s += 0.02; p.x += Math.sin(p.s) * 0.5; if (p.y > H){ p.y = -5; p.x = Math.random() * W; } g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.fill(); });
+      requestAnimationFrame(a);
+    })();
+  }
+
+  /* pestañas */
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function(b){ b.onclick = function(){
+    tabs.forEach(function(x){ x.classList.toggle("on", x === b); });
+    ["t1","t2","t3"].forEach(function(id){ $(id).hidden = id !== b.getAttribute("data-t"); });
+  }; });
+})();
+
+/* ---------- música (melodías tradicionales, sintetizadas) ---------- */
+(function(){
+  var SONGS = [
+    {n: "Jingle Bells", t: 0.26, d: [64,1,64,1,64,2, 64,1,64,1,64,2, 64,1,67,1,60,1.5,62,0.5,64,4, 65,1,65,1,65,1.5,65,0.5, 65,1,64,1,64,1,64,0.5,64,0.5, 64,1,62,1,62,1,64,1,62,2,67,2]},
+    {n: "Noche de Paz", t: 0.38, d: [67,1.5,69,0.5,67,1,64,3, 67,1.5,69,0.5,67,1,64,3, 74,2,74,1,71,3, 72,2,72,1,67,3, 69,2,69,1,72,1.5,71,0.5,69,1, 67,1.5,69,0.5,67,1,64,3, 69,2,69,1,72,1.5,71,0.5,69,1, 67,1.5,69,0.5,67,1,64,3, 74,2,74,1,77,1.5,74,0.5,71,1, 72,3,76,3, 72,1,67,1,64,1,67,1.5,65,0.5,62,1, 60,3]}
+  ];
+  var AC = null, on = false, si = 0, k = 0, tm = null;
+  function label(){ $("cancion").textContent = SONGS[si].n; }
+  function note(m, dur){
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
+    o.type = "triangle"; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.95);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  }
+  function step(){
+    if (!on) return;
+    var s = SONGS[si], m = s.d[k * 2], b = s.d[k * 2 + 1], ms = b * s.t * 1000;
+    note(m, b * s.t); k++;
+    if (k * 2 >= s.d.length){ k = 0; ms += 1200; }
+    tm = setTimeout(step, ms);
+  }
+  $("bPlay").onclick = function(){
+    try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch(e){ return; }
+    on = !on; $("bPlay").textContent = on ? "⏸" : "▶";
+    clearTimeout(tm); if (on) step();
+  };
+  $("bNext").onclick = function(){ si = (si + 1) % SONGS.length; k = 0; label(); if (on){ clearTimeout(tm); step(); } };
+  label();
+})();
+
+/* ---------- conexión con Supabase (igual que antes) ---------- */
+function rpc(fn, args){
+  var h = {"apikey": SUPABASE_KEY, "Content-Type": "application/json"};
+  if (SUPABASE_KEY.indexOf("eyJ") === 0) h["Authorization"] = "Bearer " + SUPABASE_KEY;
+  return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {method: "POST", headers: h, body: JSON.stringify(args || {})})
+    .then(function(r){ return r.json().then(function(j){
+      if (!r.ok) throw new Error(j.message || "Error de conexión");
+      return j;
+    }); });
+}
+function msg(id, text, ok){ var e = $(id); e.textContent = text || ""; e.className = "msg " + (ok ? "ok" : "err"); }
+function run(btn, mid, fn){
+  btn.disabled = true; msg(mid, "");
+  return fn().catch(function(e){ msg(mid, e.message, false); }).then(function(){ btn.disabled = false; });
+}
+
+function paint(s){
+  $("estado").textContent = !s.configurado
+    ? "El organizador aún no ha preparado el sorteo."
+    : "Inscritos: " + s.total + " de " + s.esperados + (s.sorteado ? " · ¡Sorteo realizado! 🎉" : "");
+  $("barra").style.width = (s.configurado && s.esperados ? Math.min(100, Math.round(s.total / s.esperados * 100)) : 0) + "%";
+  var box = $("nombres"); box.innerHTML = "";
+  (s.nombres || []).forEach(function(n, i){ var p = document.createElement("span"); p.className = "pill"; p.textContent = AV[i % AV.length] + " " + n; box.appendChild(p); });
+  var abierto = s.configurado && !s.sorteado;
+  $("reg").hidden = !abierto;
+  $("regMsg").hidden = abierto;
+  $("regMsg").textContent = !s.configurado ? "El organizador aún no ha preparado el sorteo. Vuelve en un momento." : "🎉 ¡El sorteo ya se realizó! Ve a la pestaña “Mi amigo” para descubrir a quién te tocó.";
+}
+function refresh(){ return rpc("sorteo_estado").then(paint).catch(function(e){ $("estado").textContent = "No se pudo conectar: " + e.message; }); }
+
+function shrink(file){
+  return new Promise(function(res){
+    var img = new Image(), u = URL.createObjectURL(file);
+    img.onload = function(){
+      var k = Math.min(1, 300 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u); res(c.toDataURL("image/jpeg", 0.55));
+    };
+    img.onerror = function(){ res(null); };
+    img.src = u;
+  });
+}
+function fillImgs(box, list){
+  box.innerHTML = "";
+  (list || []).forEach(function(src){
+    if (typeof src === "string" && src.indexOf("data:image/") === 0){
+      var im = document.createElement("img"); im.src = src; im.alt = "Idea de regalo"; box.appendChild(im);
+    }
+  });
+}
+
+$("f1").onchange = async function(){
+  var files = Array.prototype.slice.call($("f1").files).slice(0, 5), out = [];
+  for (var i = 0; i < files.length; i++){ var d = await shrink(files[i]); if (d) out.push(d); }
+  imgs = out; fillImgs($("prev"), imgs);
+};
+
+$("bReg").onclick = function(){
+  run($("bReg"), "mReg", function(){
+    return rpc("sorteo_inscribir", {p_nombre: $("n1").value, p_pin: $("p1").value, p_gustos: $("g1").value, p_fotos: imgs})
+      .then(function(s){
+        paint(s);
+        $("n2").value = $("n1").value;
+        try { localStorage.setItem("sorteo-nombre", $("n1").value.trim()); } catch(e){}
+        msg("mReg", "¡Listo! Quedaste inscrito 🎄. Cuando se complete el grupo vuelve aquí y abre “Mi amigo”.", true);
+      });
+  });
+};
+
+$("bRes").onclick = function(){
+  run($("bRes"), "mRes", function(){
+    return rpc("sorteo_resultado", {p_nombre: $("n2").value, p_pin: $("p2").value}).then(function(r){
+      if (!r.sorteado){ msg("mRes", "Aún no se hace el sorteo. Se hará cuando se inscriban todos.", true); return; }
+      $("rNombre").textContent = r.nombre;
+      var g = $("rGustos"); g.innerHTML = "";
+      if (r.gustos){
+        var h = document.createElement("p"); h.className = "hint"; h.textContent = "Le gusta:"; g.appendChild(h);
+        var l = document.createElement("div"); l.className = "likes"; l.textContent = r.gustos; g.appendChild(l);
+      } else if (!r.fotos || !r.fotos.length){
+        var q = document.createElement("p"); q.className = "hint"; q.textContent = "No dejó gustos. ¡Sorpréndelo!"; g.appendChild(q);
+      }
+      fillImgs($("rFotos"), r.fotos);
+      $("res").hidden = false; $("bRes").hidden = true;
+    });
+  });
+};
+$("bHide").onclick = function(){ $("res").hidden = true; $("bRes").hidden = false; $("p2").value = ""; };
+
+$("bCfg").onclick = function(){ run($("bCfg"), "mOrg", function(){
+  return rpc("sorteo_configurar", {p_clave: $("ck").value, p_n: parseInt($("nn").value, 10) || 0})
+    .then(function(s){ paint(s); msg("mOrg", "Sorteo configurado para " + s.esperados + " personas.", true); });
+}); };
+$("bCerrar").onclick = function(){
+  if (!confirm("Se sorteará con las personas inscritas hasta ahora. ¿Seguro?")) return;
+  run($("bCerrar"), "mOrg", function(){
+    return rpc("sorteo_cerrar", {p_clave: $("ck").value}).then(function(s){ paint(s); msg("mOrg", s.sorteado ? "Sorteo realizado." : "Faltan inscritos (mínimo 3).", s.sorteado); });
+  });
+};
+$("bReset").onclick = function(){
+  if (!confirm("Esto borra a todos los inscritos y el sorteo. ¿Seguro?")) return;
+  run($("bReset"), "mOrg", function(){
+    return rpc("sorteo_reiniciar", {p_clave: $("ck").value}).then(function(s){ paint(s); msg("mOrg", "Todo reiniciado.", true); });
+  });
+};
+
+try { var gn = localStorage.getItem("sorteo-nombre"); if (gn){ $("n1").value = gn; $("n2").value = gn; } } catch(e){}
+refresh();
+setInterval(function(){ if (!document.hidden) refresh(); }, 20000);
+</script>
+</body>
+</html>
